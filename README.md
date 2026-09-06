@@ -40,3 +40,22 @@ See `PROJECT_CONSTITUTION.md` for full scope, stack, and forbidden patterns. Thi
 `/init` → `/milestone-database` → `/milestone-test-data` → `/milestone-vendor-id` → `/milestone-tier1-parser` → `/milestone-tier2-recovery` → `/milestone-acquisition-hashing` → `/milestone-remux` → `/milestone-timeline` → `/milestone-custody-blockchain` → `/milestone-reporting` → `/milestone-ui` → `/test` → `/security` → `/deploy`
 
 (Database and test-data come early because every other milestone either writes to the DB or needs sample files to run against.)
+
+## Database Schema & Evidence Store Layout
+
+### Evidence Store Directory Structure
+```
+/evidence_store/case_<id>/
+  raw_images/    ← original forensic disk image, hashed, never modified
+  extracted/     ← Tier 1 vendor-parsed video
+  recovered/     ← Tier 2 carved video
+  reports/       ← generated PDF reports + legal certificates
+```
+
+### SQLite Schema (`src/db/schema.sql`)
+- **`cases`**: `id` (PK), `name`, `created_at`
+- **`evidence_files`**: `id` (PK), `case_id` (FK), `path`, `original_md5`, `original_sha256`, `derived_md5`, `derived_sha256`, `size_bytes`, `file_type`, `vendor`, `captured_at`, `status`, `validation_confidence` (`CHECK`: `'Validated: Real Device'`, `'Validated: Synthetic Reference Data'`, `'Stub: Awaiting Hardware'`)
+- **`timeline_events`**: `id` (PK), `evidence_file_id` (FK), `channel`, `event_time`, `precision` (`CHECK`: `'exact'`, `'approximate'`), `confidence_window_seconds`, `description`
+
+*Note: `PRAGMA journal_mode=WAL;` and `PRAGMA foreign_keys = ON;` are enforced on every database connection (`src/db/connection.py`). Video content is strictly referenced by filesystem paths; raw binary video bytes are never stored in SQLite.*
+
