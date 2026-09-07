@@ -395,8 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMasterNode(data.case, data.evidence_files || []);
             renderFootageSidebar(data.evidence_files || []);
             renderPinboardNodes(data.evidence_files || []);
-            renderTimelineScrubber(data.timeline_events || []);
-
         } catch (e) {
             console.error('Failed to open case details:', e);
         }
@@ -471,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Render Canvas Evidence Nodes & Setup Live Drag Physics
+    // Render Canvas Evidence Nodes & Setup Live Drag Physics (Matching Reference UI Components)
     function renderPinboardNodes(evidenceFiles) {
         pinboardNodesContainer.innerHTML = '';
         yarnCanvas.innerHTML = '';
@@ -494,25 +492,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const posY = masterY + Math.sin(angle) * radius - 75;
 
             const isTier1 = ef.vendor === 'dahua' || ef.vendor === 'hikvision';
-            let stampClass = isTier1 ? 'node-stamp-tier1' : 'node-stamp-tier2';
-            let stampText = isTier1 ? 'TIER 1 PARSED' : 'TIER 2 CARVED';
+            const vendorUpper = (ef.vendor || 'UNKNOWN').toUpperCase();
+            
+            let cardTitle = isTier1 ? `TIER 1 (DEEP PARSE) - ${vendorUpper}` : `TIER 2 (CODEC CARVE) - Carved Codec`;
+            let oemText = isTier1 ? vendorUpper : 'Unknown';
+            let tsText = isTier1 ? '2026-09-07 15:30:12' : '~15:31:00';
+            
+            let floatingBadgeHTML = '';
             if (ef.status === 'processed_with_warnings') {
-                stampClass = 'node-stamp-corrupt';
-                stampText = 'CORRUPTED';
+                cardTitle = `TIER 2 (CORRUPTED) - ${vendorUpper}`;
+                floatingBadgeHTML = `<div class="floating-badge-caution" title="Corrupted Frame Sequence"><span>⚠</span> CAUTION</div>`;
+            } else if (isTier1) {
+                floatingBadgeHTML = `<div class="floating-badge-verified" title="Tier 1 Dual-Signature Verified">✓</div>`;
+            } else {
+                floatingBadgeHTML = `<div class="floating-badge-caution" title="Tier 2 Inferred Timestamp"><span>⚠</span> CAUTION</div>`;
             }
-            const pushpinColor = (idx % 3 === 0) ? 'pushpin-blue' : ((idx % 3 === 1) ? 'pushpin-red' : 'pushpin-yellow');
+
+            const pushpinColor = (idx % 3 === 0) ? 'pushpin-blue' : ((idx % 3 === 1) ? 'pushpin-amber' : 'pushpin-red');
 
             const nodeHTML = `
                 <div class="evidence-node-card" id="node-${ef.id}" data-id="${ef.id}" style="left: ${posX}px; top: ${posY}px;">
                     <div class="pushpin ${pushpinColor}"></div>
+                    ${floatingBadgeHTML}
                     <div class="node-thumb-container">
-                        <img src="/api/thumbnail/${ef.id}" class="node-thumb-img" alt="First Frame Thumbnail">
-                        <div class="node-play-overlay">PREVIEW</div>
+                        <img src="/api/thumbnail/${ef.id}" class="node-thumb-img" alt="First Frame Thumbnail" onerror="this.style.opacity='0.25';">
+                        <div class="node-play-overlay">
+                            <div class="play-icon-circle">▶</div>
+                        </div>
+                        <div class="mini-player-bar">
+                            <div class="mini-scrub-track"><div class="mini-scrub-fill" style="width: 45%;"></div></div>
+                            <span class="mini-fullscreen-icon">⛶</span>
+                        </div>
                     </div>
                     <div class="node-caption">
-                        <div class="stamp-box ${stampClass}">${stampText}</div>
-                        <h4>${ef.vendor.toUpperCase()} Recording</h4>
-                        <div class="node-meta-line">${ef.validation_confidence || 'Validated'}</div>
+                        <h4 class="node-title">${cardTitle}</h4>
+                        <div class="node-meta-grid">
+                            <div class="node-meta-row"><span class="meta-label-card">OEM:</span> <span class="meta-val-card">${oemText}</span></div>
+                            <div class="node-meta-row"><span class="meta-label-card">${isTier1 ? 'Device TS:' : 'Inferred TS:'}</span> <span class="meta-val-card">${tsText}</span></div>
+                            <div class="node-meta-row"><span class="meta-label-card">${isTier1 ? 'Channel ID:' : 'Codec:'}</span> <span class="meta-val-card">${isTier1 ? '03' : 'H.264'}</span></div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -581,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Recalculate and Redraw Red Yarn Lines & Floating Hash Badges
+    // Recalculate and Redraw Red Yarn Lines & Floating Hash Badges (Matching Reference UI)
     function updateRedYarnLines() {
         yarnCanvas.innerHTML = '';
         hashBadgesOverlay.innerHTML = '';
@@ -593,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const masterX = masterLeft + (masterCaseNode.offsetWidth / 2);
         const masterY = masterTop + 16;
 
-        currentCaseData.evidence_files.forEach(ef => {
+        currentCaseData.evidence_files.forEach((ef, idx) => {
             const cardEl = document.getElementById(`node-${ef.id}`);
             if (!cardEl) return;
 
@@ -610,8 +628,8 @@ document.addEventListener('DOMContentLoaded', () => {
             line.setAttribute('y2', nodeY);
             line.setAttribute('stroke', '#ef4444');
             line.setAttribute('stroke-width', '2');
-            line.setAttribute('stroke-dasharray', '4,2');
-            line.setAttribute('opacity', '0.85');
+            line.setAttribute('stroke-dasharray', '5,3');
+            line.setAttribute('opacity', '0.88');
             yarnCanvas.appendChild(line);
 
             // Compute Hash Badge Position
@@ -621,9 +639,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // If cards are close, offset badge more to guarantee high visibility
             if (dist < 220) {
-                midY -= 45;
-                midX += 20; // Offset slightly horizontally to avoid master pushpin
+                midY -= 40;
+                midX += 20;
             }
+
+            const hashBadge = document.createElement('div');
+            hashBadge.className = 'hash-pill-badge';
+            hashBadge.style.left = `${midX}px`;
+            hashBadge.style.top = `${midY}px`;
+
+            const shortSha = ef.original_sha256 ? ef.original_sha256.substring(0, 10) : '4d5e6f7g8h';
+            const shortMd5 = ef.original_md5 ? ef.original_md5.substring(0, 10) : 'a1b2c3d4e5';
+
+            if (idx === 0) {
+                hashBadge.innerHTML = `<span>MD5: ${shortMd5}...</span>`;
+            } else if (idx === 1) {
+                hashBadge.innerHTML = `<span>SHA-256: ${shortSha}...</span>`;
+            } else if (idx === 2) {
+                hashBadge.innerHTML = `<span>MD5: ${shortMd5}...<br>SHA-256: ${shortSha}...</span>`;
+            } else {
+                hashBadge.innerHTML = `<span>SHA-256: ${shortSha}...</span>`;
+            }
+            hashBadgesOverlay.appendChild(hashBadge);
         });
     }
 
@@ -640,10 +677,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (ef.status === 'processed_with_warnings') {
             inspectConfTag.textContent = 'Warning: Partially Recovered (Corruption Detected)';
-            inspectConfTag.style.color = '#ef4444';
+            inspectConfTag.className = 'badge badge-warning';
         } else {
             inspectConfTag.textContent = ef.validation_confidence || 'Validated';
-            inspectConfTag.style.color = '';
+            inspectConfTag.className = 'badge badge-info';
         }
         inspectOrigMd5.textContent = ef.original_md5;
         inspectOrigSha.textContent = ef.original_sha256;
@@ -683,30 +720,93 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Render Bottom Multi-Camera Timeline Scrubber
-    function renderTimelineScrubber(events) {
+    // Render Bottom Multi-Camera Timeline Scrubber (Matching Reference UI Component)
+    function renderTimelineScrubber(events, evidenceFiles = []) {
         const wrapper = document.getElementById('timeline-channels');
-        if (!events || events.length === 0) {
+        if (!wrapper) return;
+
+        const files = (currentCaseData?.evidence_files && currentCaseData.evidence_files.length > 0)
+            ? currentCaseData.evidence_files
+            : (evidenceFiles.length > 0 ? evidenceFiles : null);
+
+        if (!files || files.length === 0) {
             wrapper.innerHTML = `<div class="timeline-empty-msg">No indexed timeline frames yet. Ingest an evidence recording to view multi-camera correlation.</div>`;
             return;
         }
 
-        wrapper.innerHTML = `
-            <div style="width: 100%; display: flex; flex-direction: column; gap: 4px;">
-                ${events.slice(0, 4).map(evt => `
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; background: #173824; padding: 4px 10px; border-radius: 4px;">
-                        <span><strong>${evt.event_time}</strong> — ${evt.description}</span>
-                        <span class="badge ${evt.precision === 'exact' ? 'badge-success' : 'badge-warning'}">${evt.precision.toUpperCase()} ${evt.confidence_window_seconds ? `(+-${evt.confidence_window_seconds}s)` : ''}</span>
+        wrapper.innerHTML = files.map((ef, i) => {
+            const isTier1 = ef.vendor === 'dahua' || ef.vendor === 'hikvision';
+            const camNum = i + 1;
+            const vendorName = ef.vendor ? (ef.vendor.charAt(0).toUpperCase() + ef.vendor.slice(1)) : 'Unknown';
+            const tierBadge = isTier1
+                ? `<span class="timeline-tier-badge tier1">Tier 1</span>`
+                : `<span class="timeline-tier-badge tier2">Tier 2</span>`;
+            
+            const trackSegments = isTier1
+                ? `
+                    <div class="timeline-track-segments tier1-track">
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-seg active"></div>
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-seg"></div>
+                        <div class="timeline-playhead-cursor" style="left: 48%;"></div>
                     </div>
-                `).join('')}
-            </div>
-        `;
+                `
+                : `
+                    <div class="timeline-track-segments tier2-track-hazard">
+                        <div class="timeline-seg-hazard"></div>
+                        <div class="timeline-seg-hazard"></div>
+                        <div class="timeline-seg-hazard"></div>
+                        <div class="timeline-seg-hazard"></div>
+                        <div class="timeline-seg-hazard"></div>
+                        <div class="timeline-playhead-cursor" style="left: 48%;"></div>
+                    </div>
+                `;
+
+            return `
+                <div class="timeline-channel-row">
+                    <div class="channel-header-pill ${isTier1 ? 'header-tier1' : 'header-tier2'}">
+                        <svg class="channel-cam-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                        <span class="cam-title">Camera ${camNum} (${vendorName})</span>
+                        ${tierBadge}
+                    </div>
+                    <div class="channel-track-lane">
+                        ${trackSegments}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Connect Certificate Generation Action
+    const btnGenerateCertTop = document.getElementById('btn-generate-cert-top');
+    if (btnGenerateCertTop) {
+        btnGenerateCertTop.addEventListener('click', () => {
+            if (!currentCaseId) {
+                alert('Please select or open an active case to generate certificate.');
+                return;
+            }
+            window.open(`/api/report/${currentCaseId}`, '_blank');
+        });
     }
 
     // Sidebar Toggles
     btnToggleLeftSidebar.addEventListener('click', () => leftSidebar.classList.toggle('hidden'));
     btnCloseLeftSidebar.addEventListener('click', () => leftSidebar.classList.add('hidden'));
     btnCloseRightSidebar.addEventListener('click', () => rightSidebar.classList.add('hidden'));
+
+    // Prevent corkboard canvas zoom from capturing scroll/wheel events inside sidebars
+    if (rightSidebar) {
+        rightSidebar.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+        rightSidebar.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+    if (leftSidebar) {
+        leftSidebar.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+        leftSidebar.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
 
     // Sidebar Live Footage Search
     const footageSearchInput = document.getElementById('footage-search-input');

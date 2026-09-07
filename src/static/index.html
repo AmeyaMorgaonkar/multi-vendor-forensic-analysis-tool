@@ -17,8 +17,14 @@
     <nav class="app-global-navbar">
         <div class="nav-left-slot">
             <button type="button" class="btn btn-secondary btn-sm nav-back-btn hidden" id="global-nav-back">
-                &larr; Back
+                Back
             </button>
+            <div class="brand-team-badge">
+                <div class="brand-meta-group">
+                    <span class="team-title">Void main | SIH 2026</span>
+                    <span class="team-sub">PS ID 26150</span>
+                </div>
+            </div>
         </div>
         <div class="nav-center-slot">
             <a href="#" class="global-brand-logo" id="global-brand-home" title="Go to Home Screen">
@@ -26,7 +32,18 @@
             </a>
         </div>
         <div class="nav-right-slot">
-            <!-- Clean minimal slot -->
+            <div class="nav-icons-group">
+                <button type="button" class="nav-icon-btn" title="Case Briefcase">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                </button>
+                <button type="button" class="nav-icon-btn" title="Case Discussion">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </button>
+                <button type="button" class="nav-icon-btn" title="Documentation">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <div class="nav-avatar-circle" title="Investigator: Void Main">VS</div>
+            </div>
         </div>
     </nav>
 
@@ -36,7 +53,6 @@
     <div id="view-welcome" class="view-section active">
         <main class="welcome-container">
             <div class="hero-card">
-                <span class="hero-badge">SYSTEM OVERVIEW & AUDIT METRICS</span>
                 <h2>Surveillance Evidence Recovery & Correlation</h2>
                 <p class="hero-subtext">Unified hardware frame parsing (Tier 1 Dahua/Hikvision) and NAL unit signature carving (Tier 2 H.264/H.265) with cryptographic dual-hash verification.</p>
                 
@@ -69,7 +85,7 @@
                 </div>
 
                 <div class="welcome-actions">
-                    <button type="button" class="btn btn-hero" id="btn-open-case-files">
+                    <button type="button" class="btn btn-primary" id="btn-open-case-files">
                         Open Case Files
                     </button>
                 </div>
@@ -117,8 +133,18 @@
         <!-- Pinboard Internal Control Header -->
         <div class="pinboard-control-header">
             <div class="case-info-group">
-                <h3 id="canvas-case-title">Active Case</h3>
-                <span class="badge badge-open" id="canvas-case-status-badge">OPEN</span>
+                <button type="button" class="btn-header-filter" id="btn-header-filter" title="Filter Nodes">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    FILTER
+                </button>
+                <div class="header-search-box">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="header-search-input" placeholder="Search...">
+                </div>
+                <div class="case-title-badge-wrap">
+                    <h3 id="canvas-case-title">Active Case</h3>
+                    <span class="badge badge-open" id="canvas-case-status-badge">OPEN</span>
+                </div>
             </div>
 
             <div class="canvas-action-controls">
@@ -134,8 +160,9 @@
                 <button type="button" class="btn-tool" id="btn-trigger-upload-modal">
                     Ingest Recording
                 </button>
-                <button type="button" class="btn-tool" id="btn-generate-cert-top">
-                    Generate BSA Cert
+                <button type="button" class="btn-cert-primary" id="btn-generate-cert-top" title="Generate Digital Forensic Certificate">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    GENERATE CERTIFICATE
                 </button>
             </div>
         </div>
@@ -167,14 +194,20 @@
                         <!-- Hash Badges Overlay Container -->
                         <div class="hash-badges-overlay" id="hash-badges-overlay"></div>
 
-                        <!-- CENTER MASTER CASE FILE NODE (Draggable, Animated Red Pushpin, unconnected initially) -->
+                        <!-- CENTER MASTER CASE FILE NODE (Styled like RAW DISK IMAGE in Reference UI) -->
                         <div class="pin-card center-master-card" id="master-case-node">
-                            <div class="pushpin pushpin-red-animated" title="Interactive Pushpin"></div>
-                            <div class="card-tape">MASTER CASE FILE</div>
+                            <div class="pushpin pushpin-silver" title="Master Evidence Node Pin"></div>
+                            <div class="master-preview-box">
+                                <div class="master-padlock-icon">
+                                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                            </div>
                             <div class="card-content">
-                                <div class="stamp-box stamp-confidential">CASE MASTER</div>
-                                <h3 id="master-case-name"></h3>
-                                <p class="mono-id" id="master-case-id"></p>
+                                <div class="master-card-badge-row">
+                                    <span class="master-title-tag">RAW DISK IMAGE</span>
+                                </div>
+                                <h3 id="master-case-name">Master Investigation File</h3>
+                                <p class="mono-id" id="master-case-id">ID: 0000-0000</p>
                                 <div class="master-status-row">
                                     <span class="badge badge-open" id="master-status-badge">OPEN</span>
                                     <span class="evidence-counter" id="master-evidence-count">0 Evidences Pinned</span>
@@ -186,21 +219,6 @@
                         <div class="pinboard-nodes-container" id="pinboard-nodes-container">
                             <!-- Populated dynamically via app.js -->
                         </div>
-                    </div>
-                </div>
-
-                <!-- BOTTOM MULTI-CAMERA TIMELINE SCRUBBER -->
-                <div class="bottom-timeline-scrubber" id="bottom-timeline">
-                    <div class="scrubber-header">
-                        <div class="scrubber-title">
-                            <span>Multi-Camera Correlation Timeline</span>
-                            <span class="scrubber-legend exact"><span class="badge-dot dot-exact"></span> Tier 1 (Hardware Clock)</span>
-                            <span class="scrubber-legend approx"><span class="badge-dot dot-approx"></span> Tier 2 (Approx +-5s)</span>
-                        </div>
-                        <div class="scrubber-meta" id="timeline-range-meta">Acquisition Time: UTC Index</div>
-                    </div>
-                    <div class="timeline-channels-wrapper" id="timeline-channels">
-                        <div class="timeline-empty-msg">No indexed timeline frames yet. Ingest an evidence recording to view multi-camera correlation.</div>
                     </div>
                 </div>
             </main>
@@ -259,10 +277,24 @@
                     <!-- Evidence Metadata & Precision Tags -->
                     <div class="inspector-card">
                         <h4>Parsing Specifications</h4>
-                        <div class="meta-row"><span>Evidence ID:</span> <strong id="inspect-ev-id">-</strong></div>
-                        <div class="meta-row"><span>Detected Vendor:</span> <strong id="inspect-vendor">-</strong></div>
-                        <div class="meta-row"><span>Recovery Tier:</span> <strong id="inspect-tier">-</strong></div>
-                        <div class="meta-row"><span>Confidence Tag:</span> <span class="badge badge-info" id="inspect-conf-tag">-</span></div>
+                        <div class="meta-row">
+                            <span class="meta-label">Evidence ID:</span>
+                            <strong class="meta-val mono-id-val" id="inspect-ev-id">-</strong>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Detected Vendor:</span>
+                            <strong class="meta-val" id="inspect-vendor">-</strong>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Recovery Tier:</span>
+                            <strong class="meta-val" id="inspect-tier">-</strong>
+                        </div>
+                        <div class="meta-row meta-row-stacked">
+                            <span class="meta-label">Confidence Tag:</span>
+                            <div class="meta-val-wrap">
+                                <span class="badge badge-info" id="inspect-conf-tag">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </aside>
