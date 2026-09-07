@@ -44,7 +44,7 @@ def test_hikvision_clean():
     print("=== Hikvision clean file ===")
     for name, ok in checks:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
-    return all(ok for _, ok in checks)
+    assert all(ok for _, ok in checks)
 
 
 def test_hikvision_corrupt():
@@ -57,10 +57,10 @@ def test_hikvision_corrupt():
         # and ideally partial recovery (some frames, not zero, not all).
         recovered_something = len(video) > 0
         print(f"  {'PASS' if recovered_something else 'FAIL'}  recovered some data without crashing")
-        return recovered_something
+        assert recovered_something
     except Exception as e:
         print(f"  FAIL  parser crashed on corrupt input: {e}")
-        return False
+        assert False, f"parser crashed on corrupt input: {e}"
 
 
 def test_dahua_clean():
@@ -82,7 +82,7 @@ def test_dahua_clean():
     print("=== Dahua clean file ===")
     for name, ok in checks:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
-    return all(ok for _, ok in checks)
+    assert all(ok for _, ok in checks)
 
 
 def test_dahua_corrupt():
@@ -92,10 +92,10 @@ def test_dahua_corrupt():
         video = dahua_extract_video(path)
         recovered_something = len(video) > 0
         print(f"  {'PASS' if recovered_something else 'FAIL'}  recovered some data without crashing")
-        return recovered_something
+        assert recovered_something
     except Exception as e:
         print(f"  FAIL  parser crashed on corrupt input: {e}")
-        return False
+        assert False, f"parser crashed on corrupt input: {e}"
 
 
 def test_remux_roundtrip():
@@ -117,7 +117,7 @@ def test_remux_roundtrip():
     print("=== Remux check ===")
     if result.returncode != 0:
         print(f"  FAIL  ffmpeg remux failed: {result.stderr[-300:]}")
-        return False
+        assert False, f"ffmpeg remux failed: {result.stderr[-300:]}"
 
     # Decode both back to raw frames and compare -- if remux re-encoded,
     # this will differ. This is the actual proof, not just "ffmpeg didn't error."
@@ -146,7 +146,8 @@ def test_remux_roundtrip():
         os.remove(tmp_mp4)
     if os.path.exists(tmp_back):
         os.remove(tmp_back)
-    return match
+    assert match
+
 
 
 if __name__ == "__main__":

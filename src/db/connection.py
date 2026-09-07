@@ -30,4 +30,13 @@ def get_connection(db_path: Union[str, Path]) -> sqlite3.Connection:
     else:
         raise FileNotFoundError(f"Schema file not found at {SCHEMA_PATH}")
 
+    # Idempotently ensure status column exists on cases table for backwards compatibility
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(cases);")
+    cols = [r["name"] for r in cursor.fetchall()]
+    if "status" not in cols:
+        cursor.execute("ALTER TABLE cases ADD COLUMN status TEXT DEFAULT 'OPEN';")
+        conn.commit()
+
     return conn
+

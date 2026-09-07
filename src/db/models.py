@@ -209,3 +209,67 @@ def get_timeline_for_case(
     )
     rows = cursor.fetchall()
     return [dict(r) for r in rows]
+
+
+def list_all_cases(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+    """
+    Lists all forensic cases with counts of evidence files and timeline events.
+    """
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT c.*,
+               COUNT(DISTINCT ef.id) as evidence_count,
+               COUNT(DISTINCT te.id) as timeline_count
+        FROM cases c
+        LEFT JOIN evidence_files ef ON c.id = ef.case_id
+        LEFT JOIN timeline_events te ON ef.id = te.evidence_file_id
+        GROUP BY c.id
+        ORDER BY c.created_at DESC
+        """
+    )
+    rows = cursor.fetchall()
+    return [dict(r) for r in rows]
+
+
+def update_case_status(
+    conn: sqlite3.Connection, case_id: str, status: str
+) -> bool:
+    """
+    Updates the status ('OPEN' or 'CLOSED') of a case.
+    """
+    cursor = conn.cursor()
+    cursor.execute("UPDATE cases SET status = ? WHERE id = ?", (status, case_id))
+    conn.commit()
+    return cursor.rowcount > 0
+
+
+def get_aggregate_stats(conn: sqlite3.Connection) -> Dict[str, Any]:
+    """
+    Computes real aggregate metrics across the entire forensic database.
+    """
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM cases")
+    total_cases = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM evidence_files")
+    total_evidence_files = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM evidence_files WHERE status = 'processed'")
+    converted_files = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM timeline_events")
+    timeline_events_reviewed = cursor.fetchone()[0]
+
+    cursor.execute("SELECT SUM(size_bytes) FROM evidence_files")
+    res_bytes = cursor.fetchone()[0]
+    total_bytes_processed = res_bytes if res_bytes else 0
+
+    return {
+        "total_cases": total_cases,
+        "total_evidence_files": total_evidence_files,
+        "converted_files": converted_files,
+        "timeline_events_reviewed": timeline_events_reviewed,
+        "total_bytes_processed": total_bytes_processed,
+    }
+

@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS cases (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  status TEXT DEFAULT 'OPEN'
 );
+
 
 CREATE TABLE IF NOT EXISTS evidence_files (
   id TEXT PRIMARY KEY,

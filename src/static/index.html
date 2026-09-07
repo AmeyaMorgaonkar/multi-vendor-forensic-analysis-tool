@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Forensics Canvas | Multi-Vendor DVR/NVR Analysis Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Permanent+Marker&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-canvas-theme">
+
+    <!-- ==================================================================== -->
+    <!-- UNIFIED GLOBAL TOP NAVBAR (CONSISTENT ON ALL PAGES) -->
+    <!-- ==================================================================== -->
+    <nav class="app-global-navbar">
+        <div class="nav-left-slot">
+            <button type="button" class="btn btn-secondary btn-sm nav-back-btn hidden" id="global-nav-back">
+                &larr; Back
+            </button>
+        </div>
+        <div class="nav-center-slot">
+            <a href="#" class="global-brand-logo" id="global-brand-home" title="Go to Home Screen">
+                DIGITAL FORENSICS CANVAS
+            </a>
+        </div>
+        <div class="nav-right-slot">
+            <!-- Clean minimal slot -->
+        </div>
+    </nav>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 1: WELCOME SCREEN WITH REAL DYNAMIC STATS -->
+    <!-- ==================================================================== -->
+    <div id="view-welcome" class="view-section active">
+        <main class="welcome-container">
+            <div class="hero-card">
+                <span class="hero-badge">SYSTEM OVERVIEW & AUDIT METRICS</span>
+                <h2>Surveillance Evidence Recovery & Correlation</h2>
+                <p class="hero-subtext">Unified hardware frame parsing (Tier 1 Dahua/Hikvision) and NAL unit signature carving (Tier 2 H.264/H.265) with cryptographic dual-hash verification.</p>
+                
+                <!-- Quick Dynamic Stats Grid (Loaded live from /api/stats) -->
+                <div class="quick-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-val" id="stat-cases">0</span>
+                            <span class="stat-lbl">Cases Started</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-val" id="stat-converted">0</span>
+                            <span class="stat-lbl">Recordings Converted / Recovered</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-val" id="stat-timeline">0</span>
+                            <span class="stat-lbl">Timeline Events Reviewed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-val" id="stat-bytes">0 KB</span>
+                            <span class="stat-lbl">Total Data Processed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-actions">
+                    <button type="button" class="btn btn-hero" id="btn-open-case-files">
+                        Open Case Files
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 2: CASE DIRECTORY & MANAGEMENT SCREEN -->
+    <!-- ==================================================================== -->
+    <div id="view-case-list" class="view-section hidden">
+        <main class="case-directory-container">
+            <div class="directory-page-header">
+                <div class="page-title-group">
+                    <h2>Case Directory</h2>
+                    <p class="page-subtitle">Select an investigation to open its evidence pinboard</p>
+                </div>
+                <div class="page-action-group">
+                    <button type="button" class="btn btn-felt" id="btn-show-new-case-modal">+ Start New Case</button>
+                </div>
+            </div>
+
+            <div class="directory-toolbar">
+                <div class="search-box">
+                    <input type="text" id="case-search-input" placeholder="Filter cases by name or ID...">
+                </div>
+                <div class="status-filter">
+                    <button type="button" class="btn-filter active" data-filter="all">All Cases</button>
+                    <button type="button" class="btn-filter" data-filter="OPEN">Open</button>
+                    <button type="button" class="btn-filter" data-filter="CLOSED">Closed</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Cases Cards Grid -->
+            <div class="cases-grid" id="cases-grid">
+                <!-- Populated dynamically from /api/cases -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 3: DIGITAL FORENSICS CANVAS & PINBOARD WORKSPACE -->
+    <!-- ==================================================================== -->
+    <div id="view-pinboard" class="view-section hidden">
+        <!-- Pinboard Internal Control Header -->
+        <div class="pinboard-control-header">
+            <div class="case-info-group">
+                <h3 id="canvas-case-title">Active Case</h3>
+                <span class="badge badge-open" id="canvas-case-status-badge">OPEN</span>
+            </div>
+
+            <div class="canvas-action-controls">
+                <div class="zoom-controls">
+                    <button type="button" class="btn-tool-sm" id="btn-zoom-out" title="Zoom Out">-</button>
+                    <span class="zoom-level-text" id="zoom-level-text">100%</span>
+                    <button type="button" class="btn-tool-sm" id="btn-zoom-in" title="Zoom In">+</button>
+                    <button type="button" class="btn-tool-sm" id="btn-zoom-reset" title="Reset View">Reset</button>
+                </div>
+                <button type="button" class="btn-tool" id="btn-toggle-left-sidebar">
+                    Footage Library (<span id="footage-count-badge">0</span>)
+                </button>
+                <button type="button" class="btn-tool" id="btn-trigger-upload-modal">
+                    Ingest Recording
+                </button>
+                <button type="button" class="btn-tool" id="btn-generate-cert-top">
+                    Generate BSA Cert
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Workspace Shell with Left/Right Sidebars and Canvas -->
+        <div class="workspace-shell">
+            
+            <!-- LEFT COLLAPSIBLE SIDEBAR: FOOTAGE LIBRARY -->
+            <aside class="sidebar sidebar-left" id="left-sidebar">
+                <div class="sidebar-header">
+                    <h3>Footage Library</h3>
+                    <button type="button" class="btn-icon-xs" id="btn-close-left-sidebar">Close</button>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" id="footage-search-input" placeholder="Search footage...">
+                </div>
+                <div class="footage-list" id="footage-list">
+                    <!-- Populated dynamically with recordings -->
+                </div>
+            </aside>
+
+            <!-- CENTER DIGITAL FORENSIC CANVAS AREA (PAN & ZOOM LAYER) -->
+            <main class="canvas-viewport" id="canvas-viewport">
+                <div class="corkboard-surface" id="corkboard-surface">
+                    <div class="canvas-zoom-pan-layer" id="canvas-zoom-pan-layer">
+                        <!-- SVG Red Yarn Connection Lines Overlay -->
+                        <svg class="yarn-canvas" id="yarn-canvas"></svg>
+
+                        <!-- Hash Badges Overlay Container -->
+                        <div class="hash-badges-overlay" id="hash-badges-overlay"></div>
+
+                        <!-- CENTER MASTER CASE FILE NODE (Draggable, Animated Red Pushpin, unconnected initially) -->
+                        <div class="pin-card center-master-card" id="master-case-node">
+                            <div class="pushpin pushpin-red-animated" title="Interactive Pushpin"></div>
+                            <div class="card-tape">MASTER CASE FILE</div>
+                            <div class="card-content">
+                                <div class="stamp-box stamp-confidential">CASE MASTER</div>
+                                <h3 id="master-case-name"></h3>
+                                <p class="mono-id" id="master-case-id"></p>
+                                <div class="master-status-row">
+                                    <span class="badge badge-open" id="master-status-badge">OPEN</span>
+                                    <span class="evidence-counter" id="master-evidence-count">0 Evidences Pinned</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DYNAMIC EVIDENCE POLAROID NODES CONTAINER -->
+                        <div class="pinboard-nodes-container" id="pinboard-nodes-container">
+                            <!-- Populated dynamically via app.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM MULTI-CAMERA TIMELINE SCRUBBER -->
+                <div class="bottom-timeline-scrubber" id="bottom-timeline">
+                    <div class="scrubber-header">
+                        <div class="scrubber-title">
+                            <span>Multi-Camera Correlation Timeline</span>
+                            <span class="scrubber-legend exact"><span class="badge-dot dot-exact"></span> Tier 1 (Hardware Clock)</span>
+                            <span class="scrubber-legend approx"><span class="badge-dot dot-approx"></span> Tier 2 (Approx +-5s)</span>
+                        </div>
+                        <div class="scrubber-meta" id="timeline-range-meta">Acquisition Time: UTC Index</div>
+                    </div>
+                    <div class="timeline-channels-wrapper" id="timeline-channels">
+                        <div class="timeline-empty-msg">No indexed timeline frames yet. Ingest an evidence recording to view multi-camera correlation.</div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- RIGHT COLLAPSIBLE SIDEBAR: EVIDENCE INSPECTOR & MP4 REMUX PREVIEW -->
+            <aside class="sidebar sidebar-right hidden" id="right-sidebar">
+                <div class="sidebar-header">
+                    <h3>Evidence Inspector</h3>
+                    <button type="button" class="btn-icon-xs" id="btn-close-right-sidebar">Close</button>
+                </div>
+
+                <div class="sidebar-body">
+                    <!-- Standardized MP4 Preview Video Player -->
+                    <div class="inspector-video-card">
+                        <div class="video-wrapper">
+                            <video id="inspector-video-player" controls preload="metadata">
+                                <source src="" type="video/mp4" id="inspector-video-src">
+                                Browser does not support MP4 playback.
+                            </video>
+                        </div>
+                        <div class="video-meta-bar">
+                            <span class="badge badge-success" id="inspect-codec-badge">MP4 Remux (-c copy)</span>
+                            <span class="help-text">Lossless stream - zero re-encoding</span>
+                        </div>
+                    </div>
+
+                    <!-- Dual Hash Verification Card -->
+                    <div class="inspector-card">
+                        <h4>Dual-Hash Non-Alteration Audit</h4>
+                        <table class="inspector-hash-table">
+                            <tr>
+                                <th>Original Raw MD5:</th>
+                                <td class="mono-hash" id="inspect-orig-md5">-</td>
+                            </tr>
+                            <tr>
+                                <th>Original SHA-256:</th>
+                                <td class="mono-hash" id="inspect-orig-sha">-</td>
+                            </tr>
+                            <tr>
+                                <th>Derived MP4 MD5:</th>
+                                <td class="mono-hash" id="inspect-derived-md5">-</td>
+                            </tr>
+                            <tr>
+                                <th>Derived SHA-256:</th>
+                                <td class="mono-hash" id="inspect-derived-sha">-</td>
+                            </tr>
+                        </table>
+                        <div class="hash-status-banner" id="inspect-hash-banner">
+                            <strong id="inspect-hash-text">Hashes Verified</strong>
+                        </div>
+                    </div>
+
+                    <!-- Evidence Metadata & Precision Tags -->
+                    <div class="inspector-card">
+                        <h4>Parsing Specifications</h4>
+                        <div class="meta-row"><span>Evidence ID:</span> <strong id="inspect-ev-id">-</strong></div>
+                        <div class="meta-row"><span>Detected Vendor:</span> <strong id="inspect-vendor">-</strong></div>
+                        <div class="meta-row"><span>Recovery Tier:</span> <strong id="inspect-tier">-</strong></div>
+                        <div class="meta-row"><span>Confidence Tag:</span> <span class="badge badge-info" id="inspect-conf-tag">-</span></div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+
+        <!-- BOTTOM-RIGHT MANILA FOLDER REPORT TAB -->
+        <div class="manila-report-tab" id="manila-report-tab">
+            <div class="tab-header">
+                <span class="tab-title">BSA Section 63 Report</span>
+            </div>
+            <div class="tab-actions">
+                <button type="button" class="btn btn-sm btn-manila" id="btn-download-report-tab">Generate Certificate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- MODAL: UPLOAD / INGEST EVIDENCE RECORDING -->
+    <!-- ==================================================================== -->
+    <div class="modal-backdrop hidden" id="upload-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Ingest Evidence Recording</h3>
+                <button type="button" class="btn-icon-xs" id="btn-close-upload-modal">Close</button>
+            </div>
+            <div class="modal-body">
+                <form id="modal-upload-form">
+                    <div class="dropzone" id="dropzone">
+                        <input type="file" id="file-input" name="file" class="file-input">
+                        <div class="dropzone-content">
+                            <p class="primary-text">Drag and drop raw evidence binary or video file</p>
+                            <p class="secondary-text">Dahua (.dav/.raw), Hikvision (.hik/.h264), or raw stream</p>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-input').click()">Browse File</button>
+                        </div>
+                    </div>
+
+                    <div class="file-selected-info hidden" id="file-selected-info">
+                        <span class="file-name" id="selected-file-name">filename.dav</span>
+                        <span class="file-size" id="selected-file-size">0 KB</span>
+                    </div>
+
+                    <div class="form-row margin-top-sm">
+                        <div class="form-group">
+                            <label for="vendor-select">Vendor Signature Override:</label>
+                            <select id="vendor-select" class="form-select">
+                                <option value="">Auto-Detect Signature (Tier 1 / Tier 2 Fallback)</option>
+                                <option value="dahua">Dahua (DHFS4.1 Container)</option>
+                                <option value="hikvision">Hikvision (HIK Master Header)</option>
+                                <option value="generic">Generic H.264 / H.265 (Tier 2 Carver)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="validation-select">Validation-Confidence Tag:</label>
+                            <select id="validation-select" class="form-select">
+                                <option value="Validated: Real Device">Validated: Real Device</option>
+                                <option value="Validated: Synthetic Reference Data" selected>Validated: Synthetic Reference Data</option>
+                                <option value="Stub: Awaiting Hardware">Stub: Awaiting Hardware</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="progress-section margin-top-sm hidden" id="modal-progress-section">
+                        <div class="progress-meta">
+                            <span id="modal-status-msg">Ingesting evidence...</span>
+                            <span id="modal-progress-pct">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="modal-progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer margin-top">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-upload">Cancel</button>
+                        <button type="submit" class="btn btn-felt" id="btn-start-pipeline">Ingest & Analyze</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- MODAL: CREATE NEW CASE -->
+    <!-- ==================================================================== -->
+    <div class="modal-backdrop hidden" id="new-case-modal">
+        <div class="modal-box modal-box-sm">
+            <div class="modal-header">
+                <h3>Start New Forensic Case</h3>
+                <button type="button" class="btn-icon-xs" id="btn-close-new-case-modal">Close</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-case-form">
+                    <div class="form-group">
+                        <label for="new-case-name-input">Case Name / Reference:</label>
+                        <input type="text" id="new-case-name-input" class="form-input" placeholder="Enter case name..." required>
+                    </div>
+                    <div class="form-group margin-top-sm">
+                        <label for="new-case-id-input">Custom Case ID (Optional):</label>
+                        <input type="text" id="new-case-id-input" class="form-input" placeholder="Enter custom ID (optional)...">
+                    </div>
+                    <div class="modal-footer margin-top">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-new-case">Cancel</button>
+                        <button type="submit" class="btn btn-felt">Create Case</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

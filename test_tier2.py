@@ -38,8 +38,9 @@ def test_unknown_vendor_recovery():
     if recovered:
         has_valid_nal = any(b'\x00\x00\x00\x01' in frag for frag in recovered)
         print(f"  {'PASS' if has_valid_nal else 'FAIL'}  recovered data contains real NAL start codes")
-        return ok_found and has_valid_nal
-    return False
+        assert ok_found and has_valid_nal
+    else:
+        assert False, "No fragments recovered"
 
 
 def test_false_positive_rate():
@@ -59,13 +60,13 @@ def test_false_positive_rate():
     print(f"  Time taken: {elapsed:.3f}s")
     if fp_count == 0:
         print("  PASS  zero false positives on noise")
-        return True
+        assert True
     elif fp_count <= 3:
         print("  MARGINAL  a few false positives -- acceptable for demo but worth tightening")
-        return True
+        assert True
     else:
         print("  FAIL  high false-positive rate -- check your dual-signature validation logic")
-        return False
+        assert False, f"high false-positive rate: {fp_count} frames found on noise"
 
 
 def test_scan_speed_on_larger_file():
@@ -94,7 +95,8 @@ def test_scan_speed_on_larger_file():
     print(f"  {'PASS' if ok_speed else 'FAIL'}  scan speed is consistent with mmap+regex, not byte-by-byte iteration")
 
     os.remove(big_path)
-    return ok_speed
+    assert ok_speed
+
 
 
 if __name__ == "__main__":

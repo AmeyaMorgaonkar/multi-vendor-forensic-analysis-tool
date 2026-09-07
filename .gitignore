@@ -45,6 +45,7 @@ desktop.ini
 # Testing & Coverage
 .pytest_cache/
 .pytest_temp/
+pytest_tmp/
 .coverage
 htmlcov/
 .tox/
@@ -63,6 +64,8 @@ htmlcov/
 *.key
 
 # Forensic Evidence Storage (Never commit evidence binaries)
+evidence_store/case_*
+evidence_store/uploads/*
 evidence_store/raw_images/*
 !evidence_store/raw_images/.gitkeep
 evidence_store/extracted/*
@@ -75,3 +78,4 @@ evidence_store/reports/*
 # Temporary / OS files
 tmp/
 temp/
+

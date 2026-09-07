@@ -59,3 +59,20 @@ See `PROJECT_CONSTITUTION.md` for full scope, stack, and forbidden patterns. Thi
 
 *Note: `PRAGMA journal_mode=WAL;` and `PRAGMA foreign_keys = ON;` are enforced on every database connection (`src/db/connection.py`). Video content is strictly referenced by filesystem paths; raw binary video bytes are never stored in SQLite.*
 
+## Web Application & REST API Endpoints (`app.py`)
+
+Run the application locally:
+```bash
+python app.py
+```
+Access the tactical investigation board UI in browser at: `http://127.0.0.1:5000`
+
+### API Endpoints
+- `POST /api/upload`: Upload raw evidence file (`FormData`), start background processing thread, and return `evidence_file_id`.
+- `GET /api/status/<evidence_file_id>`: Query live processing status (`queued`/`processing`/`processed`/`failed`) and progress.
+- `GET /api/timeline/<case_id>`: Fetch unified chronological timeline events with `precision` tags (`exact` vs `approximate`).
+- `GET /api/hashes/<evidence_file_id>`: Retrieve original vs derived MD5/SHA-256 hashes and cryptographic verification status.
+- `GET /api/video/<evidence_file_id>`: Serve standardized MP4 video preview (`-c copy` remux).
+- `GET /api/report/<case_id>`: Download PDF forensic report (or graceful plain text report fallback if PDF generator module is skipped).
+
+
