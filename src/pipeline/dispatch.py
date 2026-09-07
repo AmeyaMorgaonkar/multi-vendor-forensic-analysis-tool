@@ -20,6 +20,7 @@ def dispatch_pipeline(
     db_conn: Optional[sqlite3.Connection] = None,
     vendor_override: Optional[str] = None,
     validation_confidence: str = "Validated: Real Device",
+    evidence_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Full Forensic Execution Pipeline:
@@ -47,6 +48,7 @@ def dispatch_pipeline(
         db_conn=db_conn,
         validation_confidence=validation_confidence,
         vendor_override=vendor_override,
+        evidence_id=evidence_id,
     )
 
     ingested_path = Path(ingest_record["path"])
@@ -62,10 +64,11 @@ def dispatch_pipeline(
 
     case_dir = EVIDENCE_STORE_ROOT / f"case_{case_id}"
 
+    is_corrupt = False
     if vendor == "hikvision":
         recovery_tier = "tier1"
         target_parser = "src.tier1.hikvision"
-        parsed_frames = parse_hikvision_file(ingested_path)
+        parsed_frames, is_corrupt = parse_hikvision_file(ingested_path)
         for frame in parsed_frames:
             extracted_video_bytes += raw_data[
                 frame.payload_offset : frame.payload_offset + frame.payload_size
@@ -74,7 +77,7 @@ def dispatch_pipeline(
     elif vendor == "dahua":
         recovery_tier = "tier1"
         target_parser = "src.tier1.dahua"
-        parsed_frames = parse_dahua_file(ingested_path)
+        parsed_frames, is_corrupt = parse_dahua_file(ingested_path)
         for frame in parsed_frames:
             extracted_video_bytes += raw_data[
                 frame.payload_offset : frame.payload_offset + frame.payload_size
@@ -85,6 +88,7 @@ def dispatch_pipeline(
         target_parser = "src.tier2.carver"
         carved_frames = scan_nal_units(ingested_path)
         parsed_frames = carved_frames
+        is_corrupt = True # Carving generally implies damaged or missing wrapper
         for frame in carved_frames:
             extracted_video_bytes += raw_data[
                 frame.offset : frame.offset + frame.size
@@ -131,7 +135,7 @@ def dispatch_pipeline(
             evidence_file_id=evidence_id,
             derived_md5=derived_hashes["md5"],
             derived_sha256=derived_hashes["sha256"],
-            status="processed",
+            status="processed_with_warnings" if is_corrupt else "processed"
         )
 
     return {

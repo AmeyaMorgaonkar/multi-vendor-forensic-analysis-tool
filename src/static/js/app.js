@@ -432,13 +432,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         footageList.innerHTML = evidenceFiles.map(ef => {
+            const rawStatus = (ef.status || '').toLowerCase();
+            const isProcessed = rawStatus === 'processed';
+            const isWarning = rawStatus === 'processed_with_warnings' || rawStatus === 'warning' || rawStatus === 'warnings';
+            
+            // Render "warnings" instead of "processed_with_warnings"
+            const statusLabel = isWarning ? 'warnings' : (ef.status || 'unknown');
+            const badgeClass = isProcessed ? 'badge-success' : (isWarning ? 'badge-warning' : 'badge-danger');
+
+            const vendorUpper = (ef.vendor || 'UNKNOWN').toUpperCase();
+            const streamTitle = `${vendorUpper} Stream`;
+            
+            // Format confidence with character limit and ellipsis
+            let conf = ef.validation_confidence || 'Validated';
+            if (conf.length > 16) {
+                conf = conf.substring(0, 14) + '...';
+            }
+            const idShort = (ef.id || '').substring(0, 8);
+            const metaLine = `ID: ${idShort}... | ${conf}`;
+            const fullTooltip = `${streamTitle} (${ef.id}) - ${ef.validation_confidence || 'Validated'}`;
+
             return `
-                <div class="footage-item ${ef.id === selectedEvidenceId ? 'selected' : ''}" data-id="${ef.id}">
-                    <div>
-                        <span class="footage-info-title">${ef.vendor.toUpperCase()} Stream</span>
-                        <span class="footage-info-meta">ID: ${ef.id.substring(0, 8)}... | ${ef.validation_confidence || 'Validated'}</span>
+                <div class="footage-item ${ef.id === selectedEvidenceId ? 'selected' : ''}" data-id="${ef.id}" title="${fullTooltip}">
+                    <div class="footage-item-info">
+                        <span class="footage-info-title">${streamTitle}</span>
+                        <span class="footage-info-meta">${metaLine}</span>
                     </div>
-                    <span class="badge ${ef.status === 'processed' ? 'badge-success' : 'badge-warning'}">${ef.status}</span>
+                    <span class="badge ${badgeClass} footage-badge">${statusLabel}</span>
                 </div>
             `;
         }).join('');
@@ -474,8 +494,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const posY = masterY + Math.sin(angle) * radius - 75;
 
             const isTier1 = ef.vendor === 'dahua' || ef.vendor === 'hikvision';
-            const stampClass = isTier1 ? 'node-stamp-tier1' : 'node-stamp-tier2';
-            const stampText = isTier1 ? 'TIER 1 PARSED' : 'TIER 2 CARVED';
+            let stampClass = isTier1 ? 'node-stamp-tier1' : 'node-stamp-tier2';
+            let stampText = isTier1 ? 'TIER 1 PARSED' : 'TIER 2 CARVED';
+            if (ef.status === 'processed_with_warnings') {
+                stampClass = 'node-stamp-corrupt';
+                stampText = 'CORRUPTED';
+            }
             const pushpinColor = (idx % 3 === 0) ? 'pushpin-blue' : ((idx % 3 === 1) ? 'pushpin-red' : 'pushpin-yellow');
 
             const nodeHTML = `
@@ -488,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="node-caption">
                         <div class="stamp-box ${stampClass}">${stampText}</div>
                         <h4>${ef.vendor.toUpperCase()} Recording</h4>
-                        <div class="node-meta-line">MD5: ${ef.original_md5.substring(0, 12)}...</div>
                         <div class="node-meta-line">${ef.validation_confidence || 'Validated'}</div>
                     </div>
                 </div>
@@ -601,14 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 midY -= 45;
                 midX += 20; // Offset slightly horizontally to avoid master pushpin
             }
-
-            const badgePill = document.createElement('div');
-            badgePill.className = 'hash-pill-badge';
-            badgePill.style.left = `${midX}px`;
-            badgePill.style.top = `${midY}px`;
-            badgePill.textContent = `MD5: ${ef.original_md5.substring(0, 8)}...`;
-            badgePill.title = `Original MD5: ${ef.original_md5}\nOriginal SHA-256: ${ef.original_sha256}`;
-            hashBadgesOverlay.appendChild(badgePill);
         });
     }
 
@@ -622,7 +637,14 @@ document.addEventListener('DOMContentLoaded', () => {
         inspectEvId.textContent = ef.id;
         inspectVendor.textContent = ef.vendor.toUpperCase();
         inspectTier.textContent = (ef.vendor === 'dahua' || ef.vendor === 'hikvision') ? 'Tier 1 (Deep Header Parse)' : 'Tier 2 (Universal Carve)';
-        inspectConfTag.textContent = ef.validation_confidence || 'Validated';
+        
+        if (ef.status === 'processed_with_warnings') {
+            inspectConfTag.textContent = 'Warning: Partially Recovered (Corruption Detected)';
+            inspectConfTag.style.color = '#ef4444';
+        } else {
+            inspectConfTag.textContent = ef.validation_confidence || 'Validated';
+            inspectConfTag.style.color = '';
+        }
         inspectOrigMd5.textContent = ef.original_md5;
         inspectOrigSha.textContent = ef.original_sha256;
         inspectDerivedMd5.textContent = ef.derived_md5 || ef.original_md5;
@@ -640,6 +662,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.footage-item').forEach(i => {
             i.classList.toggle('selected', i.dataset.id === evidenceId);
         });
+
+        const btnDeleteEvidence = document.getElementById('btn-delete-evidence');
+        if (btnDeleteEvidence) {
+            btnDeleteEvidence.onclick = async () => {
+                if (!confirm('Are you sure you want to delete this evidence?')) return;
+                
+                try {
+                    const res = await fetch(`/api/evidence/${evidenceId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        rightSidebar.classList.add('hidden');
+                        openCasePinboard(currentCaseId);
+                    } else {
+                        alert('Failed to delete evidence.');
+                    }
+                } catch (e) {
+                    alert('Error deleting evidence: ' + e);
+                }
+            };
+        }
     }
 
     // Render Bottom Multi-Camera Timeline Scrubber
@@ -666,6 +707,23 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleLeftSidebar.addEventListener('click', () => leftSidebar.classList.toggle('hidden'));
     btnCloseLeftSidebar.addEventListener('click', () => leftSidebar.classList.add('hidden'));
     btnCloseRightSidebar.addEventListener('click', () => rightSidebar.classList.add('hidden'));
+
+    // Sidebar Live Footage Search
+    const footageSearchInput = document.getElementById('footage-search-input');
+    if (footageSearchInput) {
+        footageSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = footageList.querySelectorAll('.footage-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (!query || text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
 
     // ==========================================================================
     // 5. INGEST RECORDING MODAL & UPLOAD WORKFLOW

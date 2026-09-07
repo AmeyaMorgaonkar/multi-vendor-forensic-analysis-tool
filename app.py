@@ -94,6 +94,7 @@ def _run_pipeline_background(
                 db_conn=conn,
                 vendor_override=vendor_override if vendor_override else None,
                 validation_confidence=validation_confidence,
+                evidence_id=evidence_id,
             )
             # Generate first-frame thumbnail image for pinboard node
             _generate_thumbnail_first_frame(evidence_id, case_id, file_path)
@@ -161,19 +162,8 @@ def api_upload():
     if not file_path or not file_path.exists():
         return jsonify({"error": "No valid file uploaded or path provided."}), 400
 
-    # Ingest file metadata to generate an evidence_file_id
-    conn = get_db_connection()
-    try:
-        ingest_rec = ingest_file(
-            source_path=file_path,
-            case_id=case_id,
-            db_conn=conn,
-            validation_confidence=validation_confidence,
-            vendor_override=vendor_override if vendor_override else None,
-        )
-        evidence_id = ingest_rec["id"]
-    finally:
-        conn.close()
+    import uuid
+    evidence_id = f"ev_{uuid.uuid4().hex[:12]}"
 
     JOB_STATUS[evidence_id] = {
         "status": "queued",
@@ -505,6 +495,25 @@ def api_thumbnail(evidence_file_id: str):
             '</svg>'
         )
         return svg_placeholder, 200, {"Content-Type": "image/svg+xml"}
+    finally:
+        conn.close()
+
+
+@app.route("/api/evidence/<evidence_file_id>", methods=["DELETE"])
+def api_delete_evidence(evidence_file_id: str):
+    """
+    DELETE /api/evidence/<evidence_file_id>
+    Removes evidence file and related timeline events from the database.
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM timeline_events WHERE evidence_file_id = ?", (evidence_file_id,))
+        cursor.execute("DELETE FROM evidence_files WHERE id = ?", (evidence_file_id,))
+        conn.commit()
+        return jsonify({"status": "success", "message": "Evidence deleted."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 

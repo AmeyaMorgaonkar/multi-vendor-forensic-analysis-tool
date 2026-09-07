@@ -17,6 +17,7 @@ def ingest_file(
     db_conn: Optional[sqlite3.Connection] = None,
     validation_confidence: str = "Validated: Real Device",
     vendor_override: Optional[str] = None,
+    evidence_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Forensically ingests an evidence video file:
@@ -80,6 +81,7 @@ def ingest_file(
             vendor=vendor,
             validation_confidence=validation_confidence,
             status="ingested",
+            evidence_id=evidence_id,
         )
         evidence_record["id"] = db_record["id"]
 

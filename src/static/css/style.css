@@ -48,20 +48,21 @@ body.dark-canvas-theme {
     line-height: 1.5;
 }
 
-/* Custom Slim Scrollbars for Sidebars & Containers */
+/* Custom Visible Scrollbars for Sidebars & Containers */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: var(--bg-sidebar);
+    background: #0f2417;
 }
 ::-webkit-scrollbar-thumb {
-    background: #356647;
+    background: #2e6341;
     border-radius: 4px;
+    border: 1px solid #142e1f;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #407d57;
+    background: #3da060;
 }
 
 /* View Sections Routing */
@@ -242,6 +243,7 @@ body.dark-canvas-theme {
 .nav-back-btn {
     padding: 4px 10px;
     font-size: 12px;
+    line-height: 1;
 }
 
 /* ==========================================================================
@@ -526,7 +528,9 @@ body.dark-canvas-theme {
 }
 
 .workspace-shell {
-    flex: 1;
+    flex: 1 1 0%;
+    min-height: 0;
+    height: calc(100vh - 102px);
     display: flex;
     position: relative;
     overflow: hidden;
@@ -534,19 +538,28 @@ body.dark-canvas-theme {
 
 /* Sidebars */
 .sidebar {
-    width: 280px;
+    width: 290px;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     z-index: 15;
     transition: all 0.25s ease;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .sidebar-right {
     border-right: none;
     border-left: 1px solid var(--border-color);
-    width: 340px;
+    width: 350px;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .sidebar-header {
@@ -557,6 +570,7 @@ body.dark-canvas-theme {
     justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
     background: #0f2417;
+    flex-shrink: 0;
 }
 
 .sidebar-header h3 {
@@ -567,36 +581,79 @@ body.dark-canvas-theme {
 .sidebar-search {
     padding: 8px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .sidebar-search input {
     width: 100%;
     background: #1b3825;
     border: 1px solid var(--border-color);
-    padding: 5px 8px;
+    padding: 6px 10px;
     border-radius: 4px;
     color: var(--text-primary);
     font-size: 12px;
+    box-sizing: border-box;
 }
 
 .footage-list {
-    flex: 1;
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 8px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #3da060 #0e2015;
+}
+
+/* Explicit custom webkit scrollbar for sidebars */
+.footage-list::-webkit-scrollbar,
+.sidebar-body::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    display: block;
+}
+
+.footage-list::-webkit-scrollbar-track,
+.sidebar-body::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track {
+    background: #0e2015;
+    border-radius: 4px;
+}
+
+.footage-list::-webkit-scrollbar-thumb,
+.sidebar-body::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
+    background: #357a4e;
+    border-radius: 4px;
+    border: 1px solid #142e1f;
+}
+
+.footage-list::-webkit-scrollbar-thumb:hover,
+.sidebar-body::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #4ade80;
 }
 
 .footage-item {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 6px;
     padding: 8px 10px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+    min-width: 0;
+    box-sizing: border-box;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    flex-shrink: 0;
 }
 
 .footage-item:hover, .footage-item.selected {
@@ -604,24 +661,59 @@ body.dark-canvas-theme {
     background: #2e5c3e;
 }
 
+.footage-item-info {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .footage-info-title {
     font-size: 12px;
     font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: block;
+    max-width: 100%;
 }
 
 .footage-info-meta {
-    font-size: 10px;
+    font-size: 10.5px;
     color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+}
+
+.footage-badge {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 3px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
 }
 
 .sidebar-body {
-    flex: 1;
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 14px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #3da060 #0e2015;
 }
 
 .inspector-video-card {
@@ -643,6 +735,8 @@ body.dark-canvas-theme {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .inspector-card {
@@ -1111,9 +1205,14 @@ body.dark-canvas-theme {
 }
 
 .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+}
+
+.help-text {
+    font-size: 10px;
+    color: var(--text-muted);
 }
 
 .dropzone {

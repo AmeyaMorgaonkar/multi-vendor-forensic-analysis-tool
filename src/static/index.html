@@ -209,7 +209,10 @@
             <aside class="sidebar sidebar-right hidden" id="right-sidebar">
                 <div class="sidebar-header">
                     <h3>Evidence Inspector</h3>
-                    <button type="button" class="btn-icon-xs" id="btn-close-right-sidebar">Close</button>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button type="button" class="btn btn-crimson btn-xs" id="btn-delete-evidence">Delete</button>
+                        <button type="button" class="btn-icon-xs" id="btn-close-right-sidebar">Close</button>
+                    </div>
                 </div>
 
                 <div class="sidebar-body">
@@ -266,15 +269,7 @@
 
         </div>
 
-        <!-- BOTTOM-RIGHT MANILA FOLDER REPORT TAB -->
-        <div class="manila-report-tab" id="manila-report-tab">
-            <div class="tab-header">
-                <span class="tab-title">BSA Section 63 Report</span>
-            </div>
-            <div class="tab-actions">
-                <button type="button" class="btn btn-sm btn-manila" id="btn-download-report-tab">Generate Certificate</button>
-            </div>
-        </div>
+
     </div>
 
     <!-- ==================================================================== -->

@@ -7,7 +7,7 @@ from src.tier1.dahua import parse_dahua_file
 
 
 def extract_metadata(file_path: str) -> Dict[str, Any]:
-    frames = parse_dahua_file(file_path)
+    frames, _ = parse_dahua_file(file_path)
     if not frames:
         return {"channel": 0, "frame_count": 0, "footer_validated_frame_count": 0}
     footer_valid_count = sum(1 for f in frames if f.checksum_valid is not False)
@@ -19,7 +19,7 @@ def extract_metadata(file_path: str) -> Dict[str, Any]:
 
 
 def extract_video(file_path: str) -> bytes:
-    frames = parse_dahua_file(file_path)
+    frames, _ = parse_dahua_file(file_path)
     if not frames:
         return b""
     with open(file_path, "rb") as f:

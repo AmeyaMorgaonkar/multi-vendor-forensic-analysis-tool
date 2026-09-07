@@ -1,6 +1,6 @@
 import struct
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from src.tier1 import FrameHeader
 
@@ -76,12 +76,12 @@ def parse_hikvision_frame(buf: bytes, offset: int = 0) -> FrameHeader:
     )
 
 
-def parse_hikvision_file(file_path: Union[str, Path]) -> List[FrameHeader]:
+def parse_hikvision_file(file_path: Union[str, Path]) -> Tuple[List[FrameHeader], bool]:
     """
     Walks a Hikvision video container file frame-by-frame, extracting all valid frame headers.
 
     :param file_path: Path to Hikvision video file.
-    :return: List of valid FrameHeader objects extracted chronologically.
+    :return: Tuple of (List of valid FrameHeader objects, Boolean indicating if corruption was detected)
     """
     path = Path(file_path)
     if not path.exists() or not path.is_file():
@@ -93,6 +93,7 @@ def parse_hikvision_file(file_path: Union[str, Path]) -> List[FrameHeader]:
     frames: List[FrameHeader] = []
     offset = 0
     file_len = len(data)
+    is_corrupt = False
 
     # Skip container header block (e.g. 512 or 1024 bytes) if HIKVISION signature sits at offset 512
     if data.find(b"HIKVISION") == 512 and not data.startswith(HIKVISION_MAGIC_BYTES):
@@ -108,9 +109,10 @@ def parse_hikvision_file(file_path: Union[str, Path]) -> List[FrameHeader]:
             step = max(1, frame.frame_size)
             offset += step
         except ValueError:
+            is_corrupt = True
             next_offset = data.find(HIKVISION_MAGIC_BYTES, offset + 1)
             if next_offset == -1:
                 break
             offset = next_offset
 
-    return frames
+    return frames, is_corrupt

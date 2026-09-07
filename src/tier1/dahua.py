@@ -1,6 +1,6 @@
 import struct
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from src.tier1 import FrameHeader
 
@@ -113,12 +113,12 @@ def parse_dahua_frame(buf: bytes, offset: int = 0) -> FrameHeader:
     )
 
 
-def parse_dahua_file(file_path: Union[str, Path]) -> List[FrameHeader]:
+def parse_dahua_file(file_path: Union[str, Path]) -> Tuple[List[FrameHeader], bool]:
     """
     Walks a Dahua video container file frame-by-frame, extracting all valid dual-signature frames.
 
     :param file_path: Path to Dahua video file (.dav).
-    :return: List of valid FrameHeader objects extracted chronologically.
+    :return: Tuple of (List of valid FrameHeader objects, Boolean indicating if corruption was detected)
     """
     path = Path(file_path)
     if not path.exists() or not path.is_file():
@@ -130,6 +130,7 @@ def parse_dahua_file(file_path: Union[str, Path]) -> List[FrameHeader]:
     frames: List[FrameHeader] = []
     offset = 0
     file_len = len(data)
+    is_corrupt = False
 
     # Check container label at offset 0 (skip 512 byte container header if present)
     if data.startswith(b"DHFS4.1"):
@@ -145,10 +146,11 @@ def parse_dahua_file(file_path: Union[str, Path]) -> List[FrameHeader]:
             step = max(1, frame.frame_size)
             offset += step
         except ValueError:
+            is_corrupt = True
             # Dual-signature mismatch or corruption: resynchronize to next 'DHAV' header
             next_offset = data.find(DAHUA_HEADER_MAGIC, offset + 1)
             if next_offset == -1:
                 break
             offset = next_offset
 
-    return frames
+    return frames, is_corrupt

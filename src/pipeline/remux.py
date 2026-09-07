@@ -109,7 +109,7 @@ def remux_to_mp4(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # 1. Primary remux attempt using standard input auto-detection
-    primary_cmd = ["ffmpeg", "-y", "-i", str(raw_path), "-c", "copy", str(out_path)]
+    primary_cmd = ["ffmpeg", "-y", "-fflags", "+genpts", "-i", str(raw_path), "-c", "copy", str(out_path)]
 
     try:
         res = subprocess.run(primary_cmd, capture_output=True, text=True, check=False)

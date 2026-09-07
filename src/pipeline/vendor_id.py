@@ -29,7 +29,7 @@ def detect_vendor(
     """
     if vendor_override and vendor_override.strip():
         override_clean = vendor_override.strip().lower()
-        if override_clean in ("hikvision", "dahua"):
+        if override_clean in ("hikvision", "dahua", "generic", "unknown"):
             return override_clean
 
     path = Path(file_path)

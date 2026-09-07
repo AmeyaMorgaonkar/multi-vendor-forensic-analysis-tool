@@ -7,7 +7,7 @@ from src.tier1.hikvision import parse_hikvision_file
 
 
 def extract_metadata(file_path: str) -> Dict[str, Any]:
-    frames = parse_hikvision_file(file_path)
+    frames, _ = parse_hikvision_file(file_path)
     if not frames:
         return {"channel": 0, "frame_count": 0}
     return {
@@ -17,7 +17,7 @@ def extract_metadata(file_path: str) -> Dict[str, Any]:
 
 
 def extract_video(file_path: str) -> bytes:
-    frames = parse_hikvision_file(file_path)
+    frames, _ = parse_hikvision_file(file_path)
     if not frames:
         return b""
     with open(file_path, "rb") as f:
