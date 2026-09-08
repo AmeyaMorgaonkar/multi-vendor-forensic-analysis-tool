@@ -7,53 +7,46 @@
 
 :root {
     /* -------------------------------------------------------------
-       PALETTE: 6 Deliberate Named Hex Colors (Forensic Workstation)
-       1. Charcoal Steel:   #0f1218  (Base background)
-       2. Dark Iron:        #171b23  (Panels, toolbars, sidebar cards)
-       3. Border Slate:     #283040  (Structural dividers)
-       4. Specimen Bone:    #f4f0e6  (Evidence photo cardstock)
-       5. Forensic Blue:    #2563eb  (Primary action & active focus)
-       6. Integrity Green:  #15803d  (Verified hash / Tier 1 status)
-       7. Warning Amber:    #b45309  (Tier 2 carving / warning status)
-       8. Yarn Crimson:     #b91c1c  (Evidence thread connections)
-       9. Cork Ground:      #2a1c14  (Pinboard canvas surface)
+       PALETTE: Light Off-White Theme (Forensic Workstation)
+       Global UI uses warm off-white / cream tones.
+       Pinboard view restores dark palette via scoped override.
        ------------------------------------------------------------- */
-    --c-charcoal: #0f1218;
-    --c-charcoal-deep: #090b0f;
-    --c-iron: #171b23;
-    --c-iron-hover: #1e232e;
-    --c-border: #283040;
-    --c-border-subtle: #1e2430;
+    --c-charcoal: #f5f0e8;
+    --c-charcoal-deep: #ece5d8;
+    --c-iron: #f5f0e8;
+    --c-iron-hover: #ece5d8;
+    --c-border: #d4c8b8;
+    --c-border-subtle: #e0d6c8;
 
     --c-bone: #f4f0e6;
     --c-bone-shadow: rgba(0, 0, 0, 0.5);
 
-    --c-blue: #2563eb;
-    --c-blue-hover: #1d4ed8;
-    --c-blue-focus: #3b82f6;
+    --c-blue: #7c5a3c;
+    --c-blue-hover: #5e3f28;
+    --c-blue-focus: #a0784e;
 
     --c-green: #15803d;
     --c-green-light: #22c55e;
-    --c-green-bg: rgba(21, 128, 61, 0.16);
-    --c-green-border: rgba(21, 128, 61, 0.38);
+    --c-green-bg: rgba(21, 128, 61, 0.12);
+    --c-green-border: rgba(21, 128, 61, 0.30);
 
     --c-amber: #b45309;
     --c-amber-light: #f59e0b;
-    --c-amber-bg: rgba(180, 83, 9, 0.16);
-    --c-amber-border: rgba(180, 83, 9, 0.38);
+    --c-amber-bg: rgba(180, 83, 9, 0.10);
+    --c-amber-border: rgba(180, 83, 9, 0.30);
 
     --c-crimson: #b91c1c;
     --c-crimson-light: #ef4444;
-    --c-crimson-bg: rgba(185, 28, 28, 0.16);
-    --c-crimson-border: rgba(185, 28, 28, 0.38);
+    --c-crimson-bg: rgba(185, 28, 28, 0.08);
+    --c-crimson-border: rgba(185, 28, 28, 0.25);
 
     --c-cork: #2a1c14;
 
-    /* Text Hierarchy */
-    --text-heading: #f8fafc;
-    --text-body: #cbd5e1;
-    --text-muted: #8b9bb4;
-    --text-dim: #64748b;
+    /* Text Hierarchy — dark on light */
+    --text-heading: #2a1c14;
+    --text-body: #4a3828;
+    --text-muted: #7a6a58;
+    --text-dim: #a09484;
     --text-card: #0f172a;
     --text-card-muted: #475569;
 
@@ -61,6 +54,29 @@
     --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --font-stamp: 'Special Elite', cursive;
+}
+
+/* ======================================================================
+   CANVAS-ONLY DARK PALETTE — restores dark theme ONLY for the corkboard
+   canvas area. Sidebars, headers, and navbar remain light.
+   ====================================================================== */
+.canvas-viewport {
+    --c-charcoal: #0f1218;
+    --c-charcoal-deep: #090b0f;
+    --c-iron: #171b23;
+    --c-iron-hover: #1e232e;
+    --c-border: #283040;
+    --c-border-subtle: #1e2430;
+    --text-heading: #f5f0e8;
+    --text-body: #c8bfb0;
+    --text-muted: #9a8e7e;
+    --text-dim: #746858;
+    --c-green-bg: rgba(21, 128, 61, 0.16);
+    --c-green-border: rgba(21, 128, 61, 0.38);
+    --c-amber-bg: rgba(180, 83, 9, 0.16);
+    --c-amber-border: rgba(180, 83, 9, 0.38);
+    --c-crimson-bg: rgba(185, 28, 28, 0.16);
+    --c-crimson-border: rgba(185, 28, 28, 0.38);
 }
 
 * {
@@ -85,6 +101,7 @@ body.dark-canvas-theme {
     overflow: hidden;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    accent-color: var(--c-blue);
 }
 
 /* Utilitarian Scrollbars */
@@ -100,7 +117,7 @@ body.dark-canvas-theme {
     border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--c-blue);
+    background: var(--c-blue-focus);
 }
 
 /* View Sections Routing (Single deliberate entry motion) */
@@ -150,19 +167,19 @@ body.dark-canvas-theme {
 
 .btn:hover {
     background: var(--c-iron-hover);
-    border-color: #3b455b;
+    border-color: var(--c-border);
     color: var(--text-heading);
 }
 
 .btn-primary, .btn-felt {
     background: var(--c-blue);
-    color: #ffffff;
-    border-color: #1d4ed8;
+    color: #f5f0e8;
+    border-color: var(--c-blue-hover);
 }
 
 .btn-primary:hover, .btn-felt:hover {
     background: var(--c-blue-hover);
-    border-color: #1e40af;
+    border-color: #4a2e1a;
     color: #ffffff;
 }
 
@@ -174,12 +191,12 @@ body.dark-canvas-theme {
 
 .btn-secondary:hover {
     background: var(--c-iron-hover);
-    color: #ffffff;
+    color: var(--text-heading);
 }
 
 .btn-crimson {
     background: var(--c-crimson-bg);
-    color: #fca5a5;
+    color: var(--c-crimson);
     border-color: var(--c-crimson-border);
 }
 
@@ -211,7 +228,7 @@ body.dark-canvas-theme {
 
 .btn-icon-xs:hover {
     color: var(--text-heading);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.06);
 }
 
 /* ==========================================================================
@@ -231,32 +248,32 @@ body.dark-canvas-theme {
 
 .badge-open, .badge-success {
     background: var(--c-green-bg);
-    color: #4ade80;
+    color: var(--c-green);
     border: 1px solid var(--c-green-border);
 }
 
 .badge-closed {
-    background: rgba(100, 116, 139, 0.16);
-    color: #94a3b8;
-    border: 1px solid rgba(100, 116, 139, 0.3);
+    background: rgba(100, 100, 90, 0.10);
+    color: #6b6050;
+    border: 1px solid rgba(100, 100, 90, 0.25);
 }
 
 .badge-warning {
     background: var(--c-amber-bg);
-    color: #fbbf24;
+    color: var(--c-amber);
     border: 1px solid var(--c-amber-border);
 }
 
 .badge-danger {
     background: var(--c-crimson-bg);
-    color: #f87171;
+    color: var(--c-crimson);
     border: 1px solid var(--c-crimson-border);
 }
 
 .badge-info {
-    background: rgba(37, 99, 235, 0.16);
-    color: #93c5fd;
-    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: rgba(124, 90, 60, 0.16);
+    color: #c8a882;
+    border: 1px solid rgba(124, 90, 60, 0.35);
 }
 
 /* ==========================================================================
@@ -366,8 +383,8 @@ body.dark-canvas-theme {
 }
 
 .nav-avatar-circle:hover {
-    border-color: var(--c-blue);
-    color: #ffffff;
+    border-color: var(--c-blue-focus);
+    color: var(--text-heading);
 }
 
 .nav-back-btn {
@@ -503,7 +520,7 @@ body.dark-canvas-theme {
 }
 
 .search-box input:focus {
-    border-color: var(--c-blue);
+    border-color: var(--c-blue-focus);
 }
 
 .status-filter {
@@ -525,7 +542,7 @@ body.dark-canvas-theme {
 
 .btn-filter.active {
     background: var(--c-blue);
-    color: #ffffff;
+    color: #f5f0e8;
     border-color: var(--c-blue);
 }
 
@@ -552,7 +569,7 @@ body.dark-canvas-theme {
 }
 
 .case-card:hover {
-    border-color: var(--c-blue);
+    border-color: var(--c-blue-focus);
 }
 
 .case-card-header {
@@ -622,7 +639,7 @@ body.dark-canvas-theme {
 
 .btn-header-filter:hover {
     background: var(--c-iron-hover);
-    color: #ffffff;
+    color: var(--text-heading);
 }
 
 .header-search-box {
@@ -695,8 +712,8 @@ body.dark-canvas-theme {
 }
 
 .btn-tool-sm:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-heading);
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .zoom-level-text {
@@ -723,13 +740,13 @@ body.dark-canvas-theme {
 
 .btn-tool:hover {
     background: var(--c-iron-hover);
-    color: #ffffff;
+    color: var(--text-heading);
 }
 
 .btn-cert-primary {
     background: var(--c-blue);
-    border: 1px solid #1d4ed8;
-    color: #ffffff;
+    border: 1px solid var(--c-blue-hover);
+    color: #f5f0e8;
     padding: 4px 10px;
     font-size: 11.5px;
     font-weight: 600;
@@ -832,7 +849,7 @@ body.dark-canvas-theme {
 }
 
 .sidebar-search input:focus {
-    border-color: var(--c-blue);
+    border-color: var(--c-blue-focus);
 }
 
 .footage-list {
@@ -867,8 +884,8 @@ body.dark-canvas-theme {
 }
 
 .footage-item:hover, .footage-item.selected {
-    border-color: var(--c-blue);
-    background: #151a24;
+    border-color: var(--c-blue-focus);
+    background: var(--c-iron-hover);
 }
 
 .footage-item-info {
@@ -991,7 +1008,7 @@ body.dark-canvas-theme {
 
 .mono-hash {
     font-family: var(--font-mono);
-    color: #38bdf8;
+    color: var(--c-blue);
     word-break: break-all;
     font-size: 10px;
     line-height: 1.35;
@@ -1004,7 +1021,7 @@ body.dark-canvas-theme {
     border: 1px solid var(--c-green-border);
     border-radius: 4px;
     font-size: 10.5px;
-    color: #4ade80;
+    color: var(--c-green);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -1518,7 +1535,7 @@ body.dark-canvas-theme {
 }
 
 .form-input:focus, .form-select:focus {
-    border-color: var(--c-blue);
+    border-color: var(--c-blue-focus);
 }
 
 .form-row {
@@ -1544,7 +1561,7 @@ body.dark-canvas-theme {
 }
 
 .dropzone:hover {
-    border-color: var(--c-blue);
+    border-color: var(--c-blue-focus);
 }
 
 .file-input {
@@ -1597,27 +1614,49 @@ body.dark-canvas-theme {
 
 .progress-bar-fill {
     height: 100%;
-    background: var(--c-blue);
+    background: var(--c-blue-focus);
     border-radius: 2px;
     transition: width 0.25s ease;
 }
 
 .file-selected-info {
     margin-top: 8px;
-    padding: 6px 10px;
-    background: var(--c-charcoal);
-    border: 1px solid var(--c-border);
+    padding: 8px 12px;
+    background: rgba(124, 90, 60, 0.1);
+    border: 1px solid rgba(124, 90, 60, 0.35);
     border-radius: 4px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 11px;
+    animation: fileInfoFadeIn 0.2s ease-out;
+}
+
+@keyframes fileInfoFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .file-selected-info .file-name {
     font-weight: 600;
     color: var(--text-heading);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-selected-info .file-name::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--c-blue-focus);
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .file-selected-info .file-size {
     color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
 }

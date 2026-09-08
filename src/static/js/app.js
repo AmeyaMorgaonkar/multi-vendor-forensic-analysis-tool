@@ -828,9 +828,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     // 5. INGEST RECORDING MODAL & UPLOAD WORKFLOW
     // ==========================================================================
-    btnTriggerUploadModal.addEventListener('click', () => uploadModal.classList.remove('hidden'));
+    btnTriggerUploadModal.addEventListener('click', () => {
+        // Reset file selection state when opening modal
+        const fileInput = document.getElementById('file-input');
+        const fileSelectedInfo = document.getElementById('file-selected-info');
+        if (fileInput) fileInput.value = '';
+        if (fileSelectedInfo) fileSelectedInfo.classList.add('hidden');
+        uploadModal.classList.remove('hidden');
+    });
     btnCloseUploadModal.addEventListener('click', () => uploadModal.classList.add('hidden'));
     btnCancelUpload.addEventListener('click', () => uploadModal.classList.add('hidden'));
+
+    // File Input Change Listener — show selected file info immediately
+    const fileInputEl = document.getElementById('file-input');
+    const fileSelectedInfo = document.getElementById('file-selected-info');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const selectedFileSize = document.getElementById('selected-file-size');
+
+    if (fileInputEl) {
+        fileInputEl.addEventListener('change', () => {
+            if (fileInputEl.files && fileInputEl.files.length > 0) {
+                const file = fileInputEl.files[0];
+                selectedFileName.textContent = file.name;
+
+                const bytes = file.size;
+                if (bytes > 1024 * 1024) {
+                    selectedFileSize.textContent = (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                } else {
+                    selectedFileSize.textContent = (bytes / 1024).toFixed(1) + ' KB';
+                }
+
+                fileSelectedInfo.classList.remove('hidden');
+            } else {
+                fileSelectedInfo.classList.add('hidden');
+            }
+        });
+    }
 
     modalUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
